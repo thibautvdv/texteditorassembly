@@ -3,8 +3,8 @@
 # =============================================================================
 
 # Settings - Edit the names of the object and executable files.
-objects1 = texteditor.obj
-dest = texteditor.exe
+objects1 = texted.obj
+dest = texted.exe
 
 # =============================================================================
 # Do NOT edit this section, unless you know what you are doing.
