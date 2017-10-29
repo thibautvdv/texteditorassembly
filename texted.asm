@@ -106,17 +106,6 @@ PROC main
 	int 10h
 	inc [cursor_x]
 	jmp @@set_cursor
-@@move_down:
-
-
-@@backspace:
-
-
-@@move_up:
-
-
-
-
 
 	;Use BIOS interrupt 10h, service 0ah to print whitespace
 	;at current cursor position (erase)
