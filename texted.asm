@@ -25,6 +25,7 @@ KEYDOWN equ 50h ;pijl naar beneden vergelijken met ah
 KEYLEFT equ 4bh ;pijl naar links vergelijken met ah
 KEYRIGHT equ 4dh ;pijl naar rechts vergelijken met ah
 
+;andere constanten
 COLUMNS equ 40 
 ROWS equ 10
 MAX_X equ COLUMNS-1
@@ -44,7 +45,7 @@ PROC main
 	;this creates a clear screen effect
 	;also set-up colors (blue background & red text)
 	mov ax, 0600h
-	mov bh, 02h ;dit zijn de kleuren (0 = zwart (achtergrond), 2 = groen (text))
+	mov bh, 0Fh ;dit zijn de kleuren (0 = zwart (achtergrond), F = wit (text))
 	mov cx, 0
 	mov dx, 184fh
 	int 10h
@@ -64,7 +65,7 @@ PROC main
 	int 16h
 
 	cmp al, ESCP
-	je @@exit
+	je @@erase
 
 	cmp al, CR
 	jne @@continueCR
@@ -106,6 +107,17 @@ PROC main
 	int 10h
 	inc [cursor_x]
 	jmp @@set_cursor
+@@move_down:
+
+
+@@backspace:
+
+
+@@move_up:
+
+
+
+
 
 	;Use BIOS interrupt 10h, service 0ah to print whitespace
 	;at current cursor position (erase)
@@ -129,6 +141,7 @@ PROC main
 	mov cx, 0
 	mov dx, 184fh
 	int 10h
+	
 	;Use DOS interrupt 21h, service 4ch to exit program
 	mov ax, 4c00h
 	int 21h
