@@ -107,8 +107,11 @@ PROC main
 
 	cmp ah, KEYUP
 	jne @@continueKeyUp
+	cmp [cursor_y], 0
+	jle @@cursor_y_is_negative
 	dec [cursor_y]
 	call setCursor
+@@cursor_y_is_negative:
 	jmp @@loop
 @@continueKeyUp:
 
