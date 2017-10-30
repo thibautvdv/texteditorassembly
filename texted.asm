@@ -85,17 +85,13 @@ ENDP printChar
 
 PROC main
 	call scrollWindow
-
-@@set_cursor:
-	;Use BIOS interrupt 10h, Service 02h to position cursor
 	call setCursor
 
 @@loop:
-
 @@read_key:
 	;Use BIOS interrupt 16h, Service 00h to read keyboard
 	;(returns ASCII code in al)
-	mov ah, 0
+	mov ah, 00h
 	int 16h
 
 	cmp al, ESCP
@@ -107,43 +103,53 @@ PROC main
 	mov [cursor_x], 0
 	call setCursor
 	jmp @@loop
-
 @@continueCR:
 
-	cmp ah, 48h
+	cmp ah, KEYUP
 	jne @@continueKeyUp
 	dec [cursor_y]
-	jmp @@set_cursor
+	call setCursor
+	jmp @@loop
 @@continueKeyUp:
 
-	cmp ah, 4Dh
+	cmp ah, KEYRIGHT
 	jne @@continueKeyRight
 	inc [cursor_x]
-	jmp @@set_cursor
+	call setCursor
+	jmp @@loop
 @@continueKeyRight:
 
-	cmp ah, 4bh
+	cmp ah, KEYLEFT
 	jne @@continueKeyLeft
 	dec [cursor_x]
-	jmp @@set_cursor
+	call setCursor
+	jmp @@loop
 @@continueKeyLeft:
 
-	cmp ah, 50h
+	cmp ah, KEYDOWN
 	jne @@continueKeyDown
 	inc [cursor_y]
-	jmp @@set_cursor
+	call setCursor
+	jmp @@loop
 @@continueKeyDown:
 
-
-	call printChar, eax
-	jmp @@loop
+	cmp al, BS
+	jne @@continueBS
 	;Use BIOS interrupt 10h, service 0ah to print whitespace
 	;at current cursor position (erase)
+	dec [cursor_x]
+	call setCursor
 	mov ah, 0ah
 	mov al, WS
 	mov cx, 1
 	int 10h
 	jmp @@loop
+@@continueBS:
+
+	call printChar, eax
+	jmp @@loop
+
+
 
 @@erase:
 	;Use BIOS interrupt 10h, Service 02h to position cursor
@@ -157,7 +163,7 @@ PROC main
 	call scrollWindow
 
 	;Use DOS interrupt 21h, service 4ch to exit program
-	mov ax, 4c00h
+	mov ah, 4ch
 	int 21h
 
 ENDP main
