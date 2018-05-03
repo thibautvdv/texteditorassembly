@@ -14,18 +14,21 @@ P386
 MODEL FLAT, C
 ASSUME cs:_TEXT,ds:FLAT,es:FLAT,fs:FLAT,gs:FLAT
 
+include "fileh.inc"
+include "texth.inc"
+
 ;ascii codes
-BS equ 08h ;backspace ascii vergelijken met al
-ESCP equ 1bh ;escape ascii vergelijken met al
-WS equ 20h ;whitespace ascii (vergelijken met al)
-CR equ 0dh ;carriage return ascii vergelijken met al
-CTRLS equ 13h ; ctrl + s
+BS equ 08h            ;backspace ascii vergelijken met al
+ESCP equ 1bh          ;escape ascii vergelijken met al
+WS equ 20h            ;whitespace ascii (vergelijken met al)
+CR equ 0dh            ;carriage return ascii vergelijken met al
+CTRLS equ 13h         ; ctrl + s
 
 ;scan codes (keyboard)
-KEYUP equ 48h ;pijl naar boven vergelijken met ah
-KEYDOWN equ 50h ;pijl naar beneden vergelijken met ah
-KEYLEFT equ 4bh ;pijl naar links vergelijken met ah
-KEYRIGHT equ 4dh ;pijl naar rechts vergelijken met ah
+KEYUP equ 48h         ;pijl naar boven vergelijken met ah
+KEYDOWN equ 50h       ;pijl naar beneden vergelijken met ah
+KEYLEFT equ 4bh       ;pijl naar links vergelijken met ah
+KEYRIGHT equ 4dh      ;pijl naar rechts vergelijken met ah
 
 ;andere constanten (hiervan is nog niets gebruikt geweest)
 COLUMNS equ 50
@@ -45,14 +48,14 @@ PROC scrollWindow
   ; Met deze service is het ook mogelijk om achtergrondkleur te veranderen,
   ; alsook de tekstkleur
 
-  mov ah, 06h 	; we zetten de service code in 'ah'
-  mov al, 00h		; als 'al' gelijk is aan 0, dan zal het scherm gecleared worden
-  mov bh, 0fh 	; dit zijn de kleuren (0 = zwart (achtergrond), F = wit (text))
-  mov cx, 0000h	; 'ch' is de upper row number, 'cl' is de linker kolomnummer
-  mov dx, 184fh	; 'dh' is de lower row number (18h = 24), 'dl' is de rechter kolomnummer (4f = 79)
-  int 10h				; BIOS interrupt oproepen
+  mov ah, 06h 	    ; we zetten de service code in 'ah'
+  mov al, 00h		    ; als 'al' gelijk is aan 0, dan zal het scherm gecleared worden
+  mov bh, 0fh 	    ; dit zijn de kleuren (0 = zwart (achtergrond), F = wit (text))
+  mov cx, 0000h	    ; 'ch' is de upper row number, 'cl' is de linker kolomnummer
+  mov dx, 184fh	    ; 'dh' is de lower row number (18h = 24), 'dl' is de rechter kolomnummer (4f = 79)
+  int 10h				    ; BIOS interrupt oproepen
 
-  ret	; retourneren van de procedure
+  ret	              ; retourneren van de procedure
 ENDP scrollWindow
 
 PROC setCursor
@@ -66,7 +69,7 @@ PROC setCursor
   mov dh, [cursor_y]	; 'dh' is de rij
   mov bh, 0 					; 'bh' is de page number
   int 10h							; BIOS interrupt oproepen
-  ret	; retourneren van de procedure
+  ret	                ; retourneren van de procedure
 ENDP setCursor
 
 PROC setCursorAt
@@ -87,18 +90,6 @@ PROC setCursorAt
   ret
 ENDP setCursorAt
 
-PROC printString
-  ; deze procedure zal een string afdrukken op de plaats van de cursor
-
-  USES eax, edx
-  ARG @@string:word
-  mov edx, [offset @@string]
-  mov ah, 9
-  int 21h
-
-  ret
-ENDP printString
-
 PROC printChar
 	ARG char:byte
   ; een argument wordt meegegeven, namelijk de character dat afgedrukt moet worden op het scherm
@@ -106,7 +97,7 @@ PROC printChar
 
 	; BIOS interrupt 10h, service 0ah om een character te printen op het scherm
 
-	mov dl, [char]			; in 'al' plaatsen we het character
+	mov dl, [char]			; in 'dl' plaatsen we het character
 	mov ah, 02h					; we zetten de service code in 'ah'
 	mov cx, 1						; 'cx' is het aantal keren dat het character geprint moet worden
 	mov bh, 0						; 'bh' ide page number
@@ -134,7 +125,7 @@ PROC printChar
 
 @@end:
 	call setCursor			; cursor werkelijk op de juiste plaats zetten
-	ret	; retourneren van de procedure
+	ret	                ; retourneren van de procedure
 ENDP printChar
 
 PROC setWhiteLine
@@ -164,21 +155,21 @@ PROC readFile
 
   mov [aantalChar], 0
 @@read:
-  mov ah, 3fh ; functie om te lezen
-  mov bx, [fileHandler] ; filehandler laden
+  mov ah, 3fh                   ; functie om te lezen
+  mov bx, [fileHandler]         ; filehandler laden
   mov esi, [dword aantalChar]
-  lea dx, [buffer + esi] ; pointer naar buffer
-  mov cx, 1 ; aantal bytes we gaan lezen
-  int 21h ; DOS call
-  cmp ax, 0 ; were 0 bytes read?
-	jz @@eof ; yes, end of file found
+  lea dx, [buffer + esi]        ; pointer naar buffer
+  mov cx, 1                     ; aantal bytes we gaan lezen
+  int 21h                       ; DOS call
+  cmp ax, 0                     ; were 0 bytes read?
+	jz @@eof                      ; yes, end of file found
   mov esi, [dword aantalChar]
 	mov dl, [offset buffer + esi] ; no, load file character
-	cmp dl, 1ah ; is it control-z <EOF>?
-	jz @@eof ; jump if yes
+	cmp dl, 1ah                   ; is it control-z <EOF>?
+	jz @@eof                      ; jump if yes
   inc [aantalChar]
 
-	jmp @@read ; repeat
+	jmp @@read                    ; repeat
 
   ; einde van het bestand -> sluiten van het bestand
 @@eof:
@@ -258,41 +249,43 @@ ENDP printBuffer
 
 PROC main
 
-  call scrollWindow ; scherm zwart maken
-  call setCursor ; cursor links boven plaatsen
-  call setWhiteLine ; witte lijn tekenen
+  call scrollWindow           ; scherm zwart maken
+  call setCursor              ; cursor links boven plaatsen
+  call setWhiteLine           ; witte lijn tekenen
 
   call printString, offset fileNameHeader
   call printString, offset fileName ; printen van huidig bestand
 
-  call setCursorAt, 0, 24 ; cursor links onder plaatsen
-  call setWhiteLine ; witte lijn tekenen
+  call setCursorAt, 0, 24     ; cursor links onder plaatsen
+  call setWhiteLine           ; witte lijn tekenen
   call printString, offset commandsInfo ; info printen
 
-  call setCursorAt, 0, 1 ; cursor links boven plaatsen (waar we gaan schrijven)
-  call readFile ; lezen van het bestand
-  call printBuffer ; printen van de buffer
+  call setCursorAt, 0, 1      ; cursor links boven plaatsen (waar we gaan schrijven)
+  
+  call listFiles
+  ;call readFile               ; lezen van het bestand
+  ;call printBuffer            ; printen van de buffer
 
 @@loop:
 @@read_key:
 	; BIOS interrupt 16h, service 00h om de keyboard te lezen
 	;	in 'ah' bevindt zich de scan code van de gedrukte knop
 	; in 'al' bevindt zich de ASCII waarde van de gedrukte knop
-	mov ah, 00h ; service 00h in 'ah' plaatsen
-	int 16h			; interrupt oproepen
+	mov ah, 00h                 ; service 00h in 'ah' plaatsen
+	int 16h			                ; interrupt oproepen
 
-	cmp al, ESCP	; ASCII code vergelijken met de ASCII code van de escape knop
-	je @@exit		; als er op escape gedrukt is geweest, ga dan naar 'exit'
+	cmp al, ESCP	              ; ASCII code vergelijken met de ASCII code van de escape knop
+	je @@exit		                ; als er op escape gedrukt is geweest, ga dan naar 'exit'
 
-	cmp al, CR		; ASCII code vergelijken met de ASCII code van de carriage return (enter knop)
-	jne @@continueCR	; niet op enter gedrukt, skip dan code van enter knop en doe verder (ga naar 'continueCR')
-	inc [cursor_y]	; increment van de y-positie
-	mov [cursor_x], 0	; x-positie terug naar begin
-	call setCursor	; cursor juist zetten
-	jmp @@loop	; herbeginnen van de loop
+	cmp al, CR	              	; ASCII code vergelijken met de ASCII code van de carriage return (enter knop)
+	jne @@continueCR	          ; niet op enter gedrukt, skip dan code van enter knop en doe verder (ga naar 'continueCR')
+	inc [cursor_y]	            ; increment van de y-positie
+	mov [cursor_x], 0	          ; x-positie terug naar begin
+	call setCursor	            ; cursor juist zetten
+	jmp @@loop	                ; herbeginnen van de loop
 @@continueCR:
 
-	cmp ah, KEYUP ; scan code vergelijken van de arrow up met scan code die zich bevindt in 'ah'
+	cmp ah, KEYUP               ; scan code vergelijken van de arrow up met scan code die zich bevindt in 'ah'
 	jne @@continueKeyUp
 	cmp [cursor_y], 0
 	jle @@cursor_y_is_negative
@@ -302,28 +295,28 @@ PROC main
 	jmp @@loop
 @@continueKeyUp:
 
-	cmp ah, KEYRIGHT ; scan code vergelijken van de arrow right met scan code die zich bevindt in 'ah'
+	cmp ah, KEYRIGHT            ; scan code vergelijken van de arrow right met scan code die zich bevindt in 'ah'
 	jne @@continueKeyRight
 	inc [cursor_x]
 	call setCursor
 	jmp @@loop
 @@continueKeyRight:
 
-	cmp ah, KEYLEFT ; scan code vergelijken van de arrow left met scan code die zich bevindt in 'ah'
+	cmp ah, KEYLEFT             ; scan code vergelijken van de arrow left met scan code die zich bevindt in 'ah'
 	jne @@continueKeyLeft
 	dec [cursor_x]
 	call setCursor
 	jmp @@loop
 @@continueKeyLeft:
 
-	cmp ah, KEYDOWN	; scan code vergelijken van de arrow down met scan code die zich bevindt in 'ah'
+	cmp ah, KEYDOWN	            ; scan code vergelijken van de arrow down met scan code die zich bevindt in 'ah'
 	jne @@continueKeyDown
 	inc [cursor_y]
 	call setCursor
 	jmp @@loop
 @@continueKeyDown:
 
-	cmp al, BS ; ASCII vergelijken van de backspace met ASCII code van de backspace knop
+	cmp al, BS                  ; ASCII vergelijken van de backspace met ASCII code van de backspace knop
 	jne @@continueBS
 	;BIOS interrupt 10h, service 0ah om character te printen (een spatie)
 	dec [cursor_x]
@@ -361,6 +354,7 @@ PROC main
 ENDP main
 
 DATASEG
+  
 	cursor_x db 0
 	cursor_y db 0
 
