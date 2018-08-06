@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Settings - Edit the names of the object and executable files.
-objects1 = fileh.obj texth.obj editor.obj 
+objects1 = editor.obj
 dest = editor.exe
 
 # =============================================================================
